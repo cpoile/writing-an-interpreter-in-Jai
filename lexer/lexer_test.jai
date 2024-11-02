@@ -1,7 +1,7 @@
 
 using TokenType;
 
-TestNextToken :: () {
+test_next_token :: () {
     input := #string END
 let five = 5;
 let ten = 10;
@@ -43,7 +43,7 @@ END
     l := NewLexer(input);
 
     for expectedTokens {
-        tok := nextToken(l);
+        tok := next_token(l);
         if tok != it {
             print("Assertion failed, wanted: % got: %\n", it, tok);
             assert (tok == it);

@@ -11,52 +11,40 @@ Lexer :: struct {
 NewLexer :: (in: string) -> *Lexer {
     l := New(Lexer);
     l.input = in;
-    readChar(l);
+    read_char(l);
     return l;
 }
 
-readChar :: (l: *Lexer) {
+read_char :: (l: *Lexer) {
     if (l.readPosition >= l.input.count) l.ch = 0;
     else l.ch = l.input[l.readPosition];
     l.position = l.readPosition;
     l.readPosition += 1;
 }
 
-peakChar :: (l: *Lexer) -> u8 {
+peak_char :: (l: *Lexer) -> u8 {
     if (l.readPosition >= l.input.count) return 0;
     return l.input[l.readPosition];
 }
 
-isLetter :: (char: u8) -> bool {
-    return 65 <= char && char <= 90 || 97 <= char && char <= 122 || char == 95;
+is_letter :: (char: u8) -> bool {
+    return #char "a" <= char && char <= #char "z" || #char "A" <= char && char <= #char "Z" || char == #char "_";
 }
 
-isDigit :: (char: u8) -> bool {
-    return 48 <= char && char <= 57;
+is_my_digit :: (char: u8) -> bool {
+    return #char "0" <= char && char <= #char "9";
 }
 
 
-readIdentifier :: (l: *Lexer) -> string {
+read_ident_or_num :: (l: *Lexer, decider: (u8) -> bool) -> string {
     position := l.position;
-    while isLetter(l.ch) {
-        readChar(l);
+    while decider(l.ch) {
+        read_char(l);
     }
     return .{data = *l.input[position], count = l.position - position};
 }
 
-// TODO: combine with above
-readNumber :: (l: *Lexer) -> string {
-    position := l.position;
-    while isDigit(l.ch) {
-        readChar(l);
-    }
-    str: string;
-    str.data = *l.input[position];
-    str.count = l.position - position;
-    return str;
-}
-
-lookupIdentifier :: (ident: string) -> TokenType {
+lookup_identifier :: (ident: string) -> TokenType {
     if ident == {
         case "fn";
             return FUNCTION;
@@ -77,26 +65,26 @@ lookupIdentifier :: (ident: string) -> TokenType {
     }
 }
 
-skipWhitespace :: (l: *Lexer) {
+skip_whitespace :: (l: *Lexer) {
     while l.ch == #char " " || l.ch == #char "\t" || l.ch == #char "\n" || l.ch == #char "\r" {
-        readChar(l);
+        read_char(l);
     }
 }
 
-nextToken :: (l: *Lexer) -> Token {
-    skipWhitespace(l);
+next_token :: (l: *Lexer) -> Token {
+    skip_whitespace(l);
     tok: Token;
 
     if l.ch == {
         case #char "=";
-            if peakChar(l) == #char "=" {
+            if peak_char(l) == #char "=" {
                 tok = Token.{EQ, "=="};
-                readChar(l);
+                read_char(l);
             } else tok = Token.{ASSIGN, "="};
         case #char "!";
-            if peakChar(l) == #char "=" {
+            if peak_char(l) == #char "=" {
                 tok = Token.{NOT_EQ, "!="};
-                readChar(l);
+                read_char(l);
             } else tok = Token.{BANG, "!"};
         case #char ";";
             tok = Token.{SEMICOLON, ";"};
@@ -125,12 +113,12 @@ nextToken :: (l: *Lexer) -> Token {
         case 0;
             tok = Token.{EOF, ""};
         case;
-            if isLetter(l.ch) {
-                tok.literal = readIdentifier(l);
-                tok.type = lookupIdentifier(tok.literal);
+            if is_letter(l.ch) {
+                tok.literal = read_ident_or_num(l, is_letter);
+                tok.type = lookup_identifier(tok.literal);
                 return tok;
-            } else if isDigit(l.ch) {
-                tok.literal = readNumber(l);
+            } else if is_my_digit(l.ch) {
+                tok.literal = read_ident_or_num(l, is_digit);
                 tok.type = INT;
                 return tok;
             } else {
@@ -139,6 +127,6 @@ nextToken :: (l: *Lexer) -> Token {
 
     }
 
-    readChar(l);
+    read_char(l);
     return tok;
 }
