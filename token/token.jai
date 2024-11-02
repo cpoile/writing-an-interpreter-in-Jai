@@ -3,18 +3,26 @@
 TokenType :: enum {
     ILLEGAL;
     EOF;
-    // Identifiers + literals
+
+    // Identifiers and literals
     IDENT;
     INT;
 
     // Operators
     ASSIGN;
     PLUS;
+    MINUS;
+    BANG;
+    ASTERISK;
+    SLASH;
+    LT;
+    GT;
+    EQ;
+    NOT_EQ;
+
     // Delimiters
     COMMA;
     SEMICOLON;
-
-    PAREN;
     LPAREN;
     RPAREN;
     LBRACE;
@@ -23,6 +31,11 @@ TokenType :: enum {
     // Keywords
     FUNCTION;
     LET;
+    TRUE;
+    FALSE;
+    IF;
+    ELSE;
+    RETURN;
 }
 
 Token :: struct {

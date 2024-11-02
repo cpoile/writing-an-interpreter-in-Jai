@@ -22,6 +22,11 @@ readChar :: (l: *Lexer) {
     l.readPosition += 1;
 }
 
+peakChar :: (l: *Lexer) -> u8 {
+    if (l.readPosition >= l.input.count) return 0;
+    return l.input[l.readPosition];
+}
+
 isLetter :: (char: u8) -> bool {
     return 65 <= char && char <= 90 || 97 <= char && char <= 122 || char == 95;
 }
@@ -37,10 +42,6 @@ readIdentifier :: (l: *Lexer) -> string {
         readChar(l);
     }
     return .{data = *l.input[position], count = l.position - position};
-    // str: string;
-    // str.data = *l.input[position];
-    // str.count = l.position - position;
-    // return str;
 }
 
 // TODO: combine with above
@@ -61,6 +62,16 @@ lookupIdentifier :: (ident: string) -> TokenType {
             return FUNCTION;
         case "let";
             return LET;
+        case "true";
+            return TRUE;
+        case "false";
+            return FALSE;
+        case "if";
+            return IF;
+        case "else";
+            return ELSE;
+        case "return";
+            return RETURN;
         case;
             return IDENT;
     }
@@ -78,7 +89,15 @@ nextToken :: (l: *Lexer) -> Token {
 
     if l.ch == {
         case #char "=";
-            tok = Token.{ASSIGN, "="};
+            if peakChar(l) == #char "=" {
+                tok = Token.{EQ, "=="};
+                readChar(l);
+            } else tok = Token.{ASSIGN, "="};
+        case #char "!";
+            if peakChar(l) == #char "=" {
+                tok = Token.{NOT_EQ, "!="};
+                readChar(l);
+            } else tok = Token.{BANG, "!"};
         case #char ";";
             tok = Token.{SEMICOLON, ";"};
         case #char "(";
@@ -89,10 +108,20 @@ nextToken :: (l: *Lexer) -> Token {
             tok = Token.{COMMA, ","};
         case #char "+";
             tok = Token.{PLUS, "+"};
+        case #char "-";
+            tok = Token.{MINUS, "-"};
         case #char "{";
             tok = Token.{LBRACE, "{"};
         case #char "}";
             tok = Token.{RBRACE, "}"};
+        case #char "/";
+            tok = Token.{SLASH, "/"};
+        case #char "*";
+            tok = Token.{ASTERISK, "*"};
+        case #char "<";
+            tok = Token.{LT, "<"};
+        case #char ">";
+            tok = Token.{GT, ">"};
         case 0;
             tok = Token.{EOF, ""};
         case;
