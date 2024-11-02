@@ -1,4 +1,5 @@
 #load "../token/token.jai";
+#load "print_char.jai";
 
 Lexer :: struct {
     input        : string;
@@ -21,7 +22,58 @@ readChar :: (l: *Lexer) {
     l.readPosition += 1;
 }
 
+isLetter :: (char: u8) -> bool {
+    return 65 <= char && char <= 90 || 97 <= char && char <= 122 || char == 95;
+}
+
+isDigit :: (char: u8) -> bool {
+    return 48 <= char && char <= 57;
+}
+
+
+readIdentifier :: (l: *Lexer) -> string {
+    position := l.position;
+    while isLetter(l.ch) {
+        readChar(l);
+    }
+    return .{data = *l.input[position], count = l.position - position};
+    // str: string;
+    // str.data = *l.input[position];
+    // str.count = l.position - position;
+    // return str;
+}
+
+// TODO: combine with above
+readNumber :: (l: *Lexer) -> string {
+    position := l.position;
+    while isDigit(l.ch) {
+        readChar(l);
+    }
+    str: string;
+    str.data = *l.input[position];
+    str.count = l.position - position;
+    return str;
+}
+
+lookupIdentifier :: (ident: string) -> TokenType {
+    if ident == {
+        case "fn";
+            return FUNCTION;
+        case "let";
+            return LET;
+        case;
+            return IDENT;
+    }
+}
+
+skipWhitespace :: (l: *Lexer) {
+    while l.ch == #char " " || l.ch == #char "\t" || l.ch == #char "\n" || l.ch == #char "\r" {
+        readChar(l);
+    }
+}
+
 nextToken :: (l: *Lexer) -> Token {
+    skipWhitespace(l);
     tok: Token;
 
     if l.ch == {
@@ -43,6 +95,19 @@ nextToken :: (l: *Lexer) -> Token {
             tok = Token.{RBRACE, "}"};
         case 0;
             tok = Token.{EOF, ""};
+        case;
+            if isLetter(l.ch) {
+                tok.literal = readIdentifier(l);
+                tok.type = lookupIdentifier(tok.literal);
+                return tok;
+            } else if isDigit(l.ch) {
+                tok.literal = readNumber(l);
+                tok.type = INT;
+                return tok;
+            } else {
+                return Token.{ILLEGAL, Char_Table[l.ch]};
+            }
+
     }
 
     readChar(l);

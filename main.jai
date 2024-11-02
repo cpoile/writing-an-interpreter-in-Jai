@@ -7,7 +7,5 @@ main :: () {
     // auto test for now.
     TestNextToken();
 
-    equal("test", "test2");
-
     print("Tests passed!");
 }
