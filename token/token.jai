@@ -36,6 +36,9 @@ TokenType :: enum {
     IF;
     ELSE;
     RETURN;
+
+    // how many types?
+    TYPE_COUNT;
 }
 
 Token :: struct {

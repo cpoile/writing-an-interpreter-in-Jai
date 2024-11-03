@@ -33,8 +33,8 @@ END
 
 test_let_statement :: (expected: string, actual: Statement) -> bool {
     assert_equal(StatementType.LET, actual.type);
-    assert_equal(expected, actual.expr.value);
-    assert_equal(expected, token_literal(actual.expr));
+    assert_equal(expected, actual.name.value);
+    assert_equal(expected, token_literal(actual.name));
 
     return true;
 }
@@ -68,7 +68,7 @@ check_parse_errors :: (p: *Parser) {
 }
 
 Test_return_statement :: () {
-        input :: #string END
+    input :: #string END
 return 5;
 return 10;
 return 99323141;
@@ -79,7 +79,6 @@ END
 
     program := parse_program(p);
     check_parse_errors(p);
-
     assert_not_null(program);
 
     assert_equal(3, program.statements.count);
@@ -87,5 +86,24 @@ END
     for program.statements {
         assert_equal(StatementType.RETURN, it.type);
         assert_equal("return", token_literal(it));
+    }
+}
+
+Test_identifier_expressions :: () {
+    input := "foobar;";
+
+    l := NewLexer(input);
+    p := NewParser(l);
+
+    program := parse_program(p);
+    check_parse_errors(p);
+    assert_not_null(program);
+
+    assert_equal(1, program.statements.count);
+
+    for program.statements {
+        assert_equal(StatementType.EXPRESSION, it.type);
+        assert_equal("foobar", it.expr.value);
+        assert_equal("foobar", token_literal(it.expr));
     }
 }

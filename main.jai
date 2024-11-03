@@ -4,6 +4,7 @@
 #load "lexer/lexer_test.jai";
 #load "repl/repl.jai";
 #load "ast/ast.jai";
+#load "ast/ast_test.jai";
 #load "parser/parser.jai";
 #load "parser/parser_test.jai";
 
@@ -13,6 +14,8 @@ main :: () {
         Test_next_token();
         Test_let_statement();
         Test_return_statement();
+        Test_ast_string();
+        Test_identifier_expressions();
         print("Tests passed!");
         return;
     }

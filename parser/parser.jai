@@ -1,9 +1,32 @@
+Precedence :: enum {
+    LOWEST;
+    EQUALS;       // ==
+    LESSGREATER;  // < or >
+    SUM;          // +
+    PRODUCT;      // *
+    PREFIX;       // -X or !X
+    CALL;         // myFunction(X)
+}
+
 
 Parser :: struct {
     lexer      : *Lexer;
     cur_token  : Token;
     peek_token : Token;
     errors     : [..]string;
+}
+
+prefix_parse_fn :: #type () -> Statement;
+infix_parse_fn  :: #type (Statement) -> Statement;
+
+prefix_parse_fns : [TYPE_COUNT] prefix_parse_fn;
+infix_parse_fns  : [TYPE_COUNT] infix_parse_fn;
+
+register_prefix :: (t: TokenType, fn: prefix_parse_fn) {
+    prefix_parse_fns[t] = fn;
+}
+register_infix :: (t: TokenType, fn: infix_parse_fn) {
+    infix_parse_fns[t] = fn;
 }
 
 NewParser :: (l: *Lexer) -> *Parser {
@@ -43,7 +66,8 @@ parse_statement :: (p: *Parser) -> Statement, bool {
             stmt, ok := parse_return_statement(p);
             return stmt, ok;
         case;
-            return .{}, false;
+            stmt, ok := parse_expression_statement(p);
+            return stmt, ok;
     }
 }
 
@@ -52,9 +76,7 @@ parse_let_statement :: (p: *Parser) -> Statement, bool {
 
     if !expect_peek(p, IDENT) return stmt, false;
 
-    stmt.expr = New(Identifier);
-    stmt.expr.token = p.cur_token;
-    stmt.expr.value = p.cur_token.literal;
+    stmt.name = NewIdentifier(token = p.cur_token, value = p.cur_token.literal);
 
     if !expect_peek(p, ASSIGN) return stmt, false;
 
@@ -75,6 +97,26 @@ parse_return_statement :: (p: *Parser) -> Statement, bool {
     }
 
     return stmt, true;
+}
+
+parse_expression_statement :: (p: *Parser) -> Statement, bool {
+    stmt := Statement.{type = StatementType.EXPRESSION, token= p.cur_token};
+
+    stmt.expr = parse_expression(p, cast(int) Precedence.LOWEST);
+
+    if peek_token_is(p, SEMICOLON) {
+        next_token(p);
+    }
+
+    return stmt;
+}
+
+parse_expression :: (p: *Parser, precendence: int) -> Statement, bool {
+    prefix := prefix_parse_fns[p.cur_token.type];
+    if !prefix  return .{}, false;
+    left_exp := prefix();
+
+    return left_exp, true;
 }
 
 cur_token_is :: (p: *Parser, t: TokenType) -> bool {
