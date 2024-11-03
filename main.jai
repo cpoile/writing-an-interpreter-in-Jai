@@ -3,11 +3,15 @@
 #load "lexer/lexer.jai";
 #load "lexer/lexer_test.jai";
 #load "repl/repl.jai";
+#load "ast/ast.jai";
+#load "parser/parser.jai";
+#load "parser/parser_test.jai";
 
 main :: () {
     args := get_command_line_arguments();
     if args.count > 1 && args[1] == "test" {
-        test_next_token();
+        Test_next_token();
+        Test_let_statement();
         print("Tests passed!");
         return;
     }
