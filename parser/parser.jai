@@ -36,8 +36,11 @@ parse_program :: (p: *Parser) -> *Program {
 
 parse_statement :: (p: *Parser) -> Statement, bool {
     if p.cur_token.type == {
-        case LET;
+        case .LET;
             stmt, ok := parse_let_statement(p);
+            return stmt, ok;
+        case .RETURN;
+            stmt, ok := parse_return_statement(p);
             return stmt, ok;
         case;
             return .{}, false;
@@ -49,11 +52,22 @@ parse_let_statement :: (p: *Parser) -> Statement, bool {
 
     if !expect_peek(p, IDENT) return stmt, false;
 
-    stmt.name = New(Identifier);
-    stmt.name.token = p.cur_token;
-    stmt.name.value = p.cur_token.literal;
+    stmt.expr = New(Identifier);
+    stmt.expr.token = p.cur_token;
+    stmt.expr.value = p.cur_token.literal;
 
     if !expect_peek(p, ASSIGN) return stmt, false;
+
+    // TODO: we're skipping the expressions until we get a semicolon
+    while !cur_token_is(p, SEMICOLON) {
+        next_token(p);
+    }
+
+    return stmt, true;
+}
+
+parse_return_statement :: (p: *Parser) -> Statement, bool {
+    stmt := Statement.{type = StatementType.RETURN, token = p.cur_token};
 
     // TODO: we're skipping the expressions until we get a semicolon
     while !cur_token_is(p, SEMICOLON) {

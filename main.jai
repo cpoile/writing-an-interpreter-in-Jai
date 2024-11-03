@@ -12,6 +12,7 @@ main :: () {
     if args.count > 1 && args[1] == "test" {
         Test_next_token();
         Test_let_statement();
+        Test_return_statement();
         print("Tests passed!");
         return;
     }

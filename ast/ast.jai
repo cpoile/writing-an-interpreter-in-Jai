@@ -1,5 +1,6 @@
 StatementType :: enum {
     LET;
+    RETURN;
 }
 
 Program :: struct {
@@ -9,11 +10,10 @@ Program :: struct {
 Statement :: struct {
     type:  StatementType;
     token: Token;
-    name:  *Identifier;
-    value: Identifier;
+    expr:  *Identifier;
 }
 
-// Identifier represents an Identifier (x in let x = expression) and an expression (the expression)
+// Identifier represents an Identifier (x in let x = expression) and an expression (the expression... I think... haven't done that yet.)
 Identifier :: struct {
     token: Token;
     value: string;
