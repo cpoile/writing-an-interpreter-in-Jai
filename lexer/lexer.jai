@@ -47,21 +47,21 @@ read_ident_or_num :: (l: *Lexer, decider: (u8) -> bool) -> string {
 lookup_identifier :: (ident: string) -> TokenType {
     if ident == {
         case "fn";
-            return FUNCTION;
+            return .FUNCTION;
         case "let";
-            return LET;
+            return .LET;
         case "true";
-            return TRUE;
+            return .TRUE;
         case "false";
-            return FALSE;
+            return .FALSE;
         case "if";
-            return IF;
+            return .IF;
         case "else";
-            return ELSE;
+            return .ELSE;
         case "return";
-            return RETURN;
+            return .RETURN;
         case;
-            return IDENT;
+            return .IDENT;
     }
 }
 
@@ -78,40 +78,40 @@ next_token :: (l: *Lexer) -> Token {
     if l.ch == {
         case #char "=";
             if peak_char(l) == #char "=" {
-                tok = Token.{EQ, "=="};
+                tok = Token.{.EQ, "=="};
                 read_char(l);
-            } else tok = Token.{ASSIGN, "="};
+            } else tok = Token.{.ASSIGN, "="};
         case #char "!";
             if peak_char(l) == #char "=" {
-                tok = Token.{NOT_EQ, "!="};
+                tok = Token.{.NOT_EQ, "!="};
                 read_char(l);
-            } else tok = Token.{BANG, "!"};
+            } else tok = Token.{.BANG, "!"};
         case #char ";";
-            tok = Token.{SEMICOLON, ";"};
+            tok = Token.{.SEMICOLON, ";"};
         case #char "(";
-            tok = Token.{LPAREN, "("};
+            tok = Token.{.LPAREN, "("};
         case #char ")";
-            tok = Token.{RPAREN, ")"};
+            tok = Token.{.RPAREN, ")"};
         case #char ",";
-            tok = Token.{COMMA, ","};
+            tok = Token.{.COMMA, ","};
         case #char "+";
-            tok = Token.{PLUS, "+"};
+            tok = Token.{.PLUS, "+"};
         case #char "-";
-            tok = Token.{MINUS, "-"};
+            tok = Token.{.MINUS, "-"};
         case #char "{";
-            tok = Token.{LBRACE, "{"};
+            tok = Token.{.LBRACE, "{"};
         case #char "}";
-            tok = Token.{RBRACE, "}"};
+            tok = Token.{.RBRACE, "}"};
         case #char "/";
-            tok = Token.{SLASH, "/"};
+            tok = Token.{.SLASH, "/"};
         case #char "*";
-            tok = Token.{ASTERISK, "*"};
+            tok = Token.{.ASTERISK, "*"};
         case #char "<";
-            tok = Token.{LT, "<"};
+            tok = Token.{.LT, "<"};
         case #char ">";
-            tok = Token.{GT, ">"};
+            tok = Token.{.GT, ">"};
         case 0;
-            tok = Token.{EOF, ""};
+            tok = Token.{.EOF, ""};
         case;
             if is_letter(l.ch) {
                 tok.literal = read_ident_or_num(l, is_letter);
@@ -119,10 +119,10 @@ next_token :: (l: *Lexer) -> Token {
                 return tok;
             } else if is_my_digit(l.ch) {
                 tok.literal = read_ident_or_num(l, is_digit);
-                tok.type = INT;
+                tok.type = .INT;
                 return tok;
             } else {
-                return Token.{ILLEGAL, Char_Table[l.ch]};
+                return Token.{.ILLEGAL, Char_Table[l.ch]};
             }
 
     }

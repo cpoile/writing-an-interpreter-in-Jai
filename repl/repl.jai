@@ -23,7 +23,7 @@ start_repl :: (h: HANDLE) {
         l := NewLexer(input);
 
         tok := next_token(l);
-        while tok.type != EOF && tok.type != ILLEGAL {
+        while tok.type != .EOF && tok.type != .ILLEGAL {
             print("%\n", tok);
             tok = next_token(l);
         }

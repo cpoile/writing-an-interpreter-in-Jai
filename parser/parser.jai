@@ -19,8 +19,8 @@ Parser :: struct {
 prefix_parse_fn :: #type () -> Statement;
 infix_parse_fn  :: #type (Statement) -> Statement;
 
-prefix_parse_fns : [TYPE_COUNT] prefix_parse_fn;
-infix_parse_fns  : [TYPE_COUNT] infix_parse_fn;
+prefix_parse_fns : [TokenType.TYPE_COUNT] prefix_parse_fn;
+infix_parse_fns  : [TokenType.TYPE_COUNT] infix_parse_fn;
 
 register_prefix :: (t: TokenType, fn: prefix_parse_fn) {
     prefix_parse_fns[t] = fn;
@@ -48,7 +48,7 @@ next_token :: (p: *Parser) {
 parse_program :: (p: *Parser) -> *Program {
     program := New(Program);
 
-    while !cur_token_is(p, EOF) {
+    while !cur_token_is(p, .EOF) {
         stmt, ok := parse_statement(p);
         if ok  array_add(*program.statements, stmt);
         next_token(p);
@@ -72,16 +72,16 @@ parse_statement :: (p: *Parser) -> Statement, bool {
 }
 
 parse_let_statement :: (p: *Parser) -> Statement, bool {
-    stmt := Statement.{type = StatementType.LET, token = p.cur_token};
+    stmt := Statement.{type = .LET, token = p.cur_token};
 
-    if !expect_peek(p, IDENT) return stmt, false;
+    if !expect_peek(p, .IDENT) return stmt, false;
 
     stmt.name = NewIdentifier(token = p.cur_token, value = p.cur_token.literal);
 
-    if !expect_peek(p, ASSIGN) return stmt, false;
+    if !expect_peek(p, .ASSIGN) return stmt, false;
 
     // TODO: we're skipping the expressions until we get a semicolon
-    while !cur_token_is(p, SEMICOLON) {
+    while !cur_token_is(p, .SEMICOLON) {
         next_token(p);
     }
 
@@ -89,10 +89,10 @@ parse_let_statement :: (p: *Parser) -> Statement, bool {
 }
 
 parse_return_statement :: (p: *Parser) -> Statement, bool {
-    stmt := Statement.{type = StatementType.RETURN, token = p.cur_token};
+    stmt := Statement.{type = .RETURN, token = p.cur_token};
 
     // TODO: we're skipping the expressions until we get a semicolon
-    while !cur_token_is(p, SEMICOLON) {
+    while !cur_token_is(p, .SEMICOLON) {
         next_token(p);
     }
 
@@ -100,15 +100,15 @@ parse_return_statement :: (p: *Parser) -> Statement, bool {
 }
 
 parse_expression_statement :: (p: *Parser) -> Statement, bool {
-    stmt := Statement.{type = StatementType.EXPRESSION, token= p.cur_token};
+    stmt := Statement.{type = .EXPRESSION, token= p.cur_token};
 
-    stmt.expr = parse_expression(p, cast(int) Precedence.LOWEST);
+    // stmt.expr = parse_expression(p, cast(int) Precedence.LOWEST);
 
-    if peek_token_is(p, SEMICOLON) {
+    if peek_token_is(p, .SEMICOLON) {
         next_token(p);
     }
 
-    return stmt;
+    return stmt, false;
 }
 
 parse_expression :: (p: *Parser, precendence: int) -> Statement, bool {

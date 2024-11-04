@@ -1,7 +1,7 @@
 
-using TokenType;
-
 Test_next_token :: () {
+    using TokenType;
+
     input := #string END
 let five = 5;
 let ten = 10;
