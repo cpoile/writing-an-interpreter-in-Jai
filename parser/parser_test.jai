@@ -31,10 +31,11 @@ END
     }
 }
 
-test_let_statement :: (expected: string, actual: Statement) -> bool {
-    assert_equal(StatementType.LET, actual.type);
-    assert_equal(expected, actual.name.value);
-    assert_equal(expected, token_literal(actual.name));
+test_let_statement :: (expected: string, actual: *Statement) -> bool {
+    assert_equal(LetStatement, actual.type);
+    stmt := cast(*LetStatement) actual;
+    assert_equal(expected, stmt.name.value);
+    assert_equal(expected, token_literal(stmt.name));
 
     return true;
 }
@@ -84,7 +85,7 @@ END
     assert_equal(3, program.statements.count);
 
     for program.statements {
-        assert_equal(StatementType.RETURN, it.type);
+        assert_equal(ReturnStatement, it.type);
         assert_equal("return", token_literal(it));
     }
 }
@@ -102,8 +103,11 @@ Test_identifier_expressions :: () {
     assert_equal(1, program.statements.count);
 
     for program.statements {
-        assert_equal(StatementType.EXPRESSION, it.type);
-        assert_equal("foobar", it.expr.value);
-        assert_equal("foobar", token_literal(it.expr));
+        assert_equal(ExpressionStatement, it.type);
+        es := cast(*ExpressionStatement) it;
+        assert_equal(Identifier, es.expression.type);
+        ident := cast(*Identifier) es.expression;
+        assert_equal("foobar", ident.value);
+        assert_equal("foobar", token_literal(ident));
     }
 }

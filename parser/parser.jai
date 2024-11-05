@@ -8,7 +8,6 @@ Precedence :: enum {
     CALL;         // myFunction(X)
 }
 
-
 Parser :: struct {
     lexer      : *Lexer;
     cur_token  : Token;
@@ -16,8 +15,8 @@ Parser :: struct {
     errors     : [..]string;
 }
 
-prefix_parse_fn :: #type () -> Statement;
-infix_parse_fn  :: #type (Statement) -> Statement;
+prefix_parse_fn :: #type (*Parser) -> *Expression;
+infix_parse_fn  :: #type (*Parser, *Expression) -> *Expression;
 
 prefix_parse_fns : [TokenType.TYPE_COUNT] prefix_parse_fn;
 infix_parse_fns  : [TokenType.TYPE_COUNT] infix_parse_fn;
@@ -32,6 +31,8 @@ register_infix :: (t: TokenType, fn: infix_parse_fn) {
 NewParser :: (l: *Lexer) -> *Parser {
     p := New(Parser);
     p.lexer = l;
+
+    register_prefix(.IDENT, parse_identifier);
 
     // Read two tokens, so curToken and peekToken are both set
     next_token(p);
@@ -49,74 +50,78 @@ parse_program :: (p: *Parser) -> *Program {
     program := New(Program);
 
     while !cur_token_is(p, .EOF) {
-        stmt, ok := parse_statement(p);
-        if ok  array_add(*program.statements, stmt);
+        stmt := parse_statement(p);
+        if stmt  array_add(*program.statements, stmt);
         next_token(p);
     }
 
     return program;
 }
 
-parse_statement :: (p: *Parser) -> Statement, bool {
+parse_statement :: (p: *Parser) -> *Statement {
     if p.cur_token.type == {
         case .LET;
-            stmt, ok := parse_let_statement(p);
-            return stmt, ok;
+            return parse_let_statement(p);
         case .RETURN;
-            stmt, ok := parse_return_statement(p);
-            return stmt, ok;
+            return parse_return_statement(p);
         case;
-            stmt, ok := parse_expression_statement(p);
-            return stmt, ok;
+            return parse_expression_statement(p);
     }
 }
 
-parse_let_statement :: (p: *Parser) -> Statement, bool {
-    stmt := Statement.{type = .LET, token = p.cur_token};
+parse_let_statement :: (p: *Parser) -> *LetStatement {
+    token := p.cur_token;
 
-    if !expect_peek(p, .IDENT) return stmt, false;
+    if !expect_peek(p, .IDENT) return null;
 
-    stmt.name = NewIdentifier(token = p.cur_token, value = p.cur_token.literal);
+    name := NewIdentifier(p.cur_token, p.cur_token.literal);
 
-    if !expect_peek(p, .ASSIGN) return stmt, false;
+    if !expect_peek(p, .ASSIGN) {
+        free(name);
+        return null;
+    }
 
     // TODO: we're skipping the expressions until we get a semicolon
     while !cur_token_is(p, .SEMICOLON) {
         next_token(p);
     }
 
-    return stmt, true;
+    return NewLetStatement(token, name, null);
 }
 
-parse_return_statement :: (p: *Parser) -> Statement, bool {
-    stmt := Statement.{type = .RETURN, token = p.cur_token};
+parse_return_statement :: (p: *Parser) -> *ReturnStatement {
+    stmt := NewReturnStatement(p.cur_token, null);
 
     // TODO: we're skipping the expressions until we get a semicolon
     while !cur_token_is(p, .SEMICOLON) {
         next_token(p);
     }
 
-    return stmt, true;
+    return stmt;
 }
 
-parse_expression_statement :: (p: *Parser) -> Statement, bool {
-    stmt := Statement.{type = .EXPRESSION, token= p.cur_token};
+parse_expression_statement :: (p: *Parser) -> *ExpressionStatement {
+    stmt := NewExpressionStatement(p.cur_token, null);
 
-    // stmt.expr = parse_expression(p, cast(int) Precedence.LOWEST);
+    stmt.expression = parse_expression(p, cast(int) Precedence.LOWEST);
 
     if peek_token_is(p, .SEMICOLON) {
         next_token(p);
     }
 
-    return stmt, false;
+    return stmt;
 }
 
-parse_expression :: (p: *Parser, precendence: int) -> Statement, bool {
+parse_expression :: (p: *Parser, precendence: int) -> *Expression {
     prefix := prefix_parse_fns[p.cur_token.type];
-    if !prefix  return .{}, false;
-    left_exp := prefix();
+    if !prefix  return null;
+    left_exp := prefix(p);
 
-    return left_exp, true;
+    return left_exp;
+}
+
+parse_identifier :: (p: *Parser) -> *Expression {
+    return NewIdentifier(p.cur_token, p.cur_token.literal);
 }
 
 cur_token_is :: (p: *Parser, t: TokenType) -> bool {
