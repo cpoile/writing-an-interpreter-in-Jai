@@ -30,29 +30,21 @@ token_literal :: (node: $T) -> string { return node.token.literal; }
 to_string :: (node: *Node) -> string {
     if node.type == {
         case LetStatement;
-            ls := cast(*LetStatement) node;
-            return to_string(ls);
+            return to_string(cast(*LetStatement) node);
         case ReturnStatement;
-            rs := cast(*ReturnStatement) node;
-            return to_string(rs);
+            return to_string(cast(*ReturnStatement) node);
         case ExpressionStatement;
-            es := cast(*ExpressionStatement) node;
-            return to_string(es);
+            return to_string(cast(*ExpressionStatement) node);
         case Identifier;
-            i := cast(*Identifier) node;
-            return to_string(i);
+            return to_string(cast(*Identifier) node);
         case Boolean;
-            b := cast(*Boolean) node;
-            return to_string(b);
+            return to_string(cast(*Boolean) node);
         case IntegerLiteral;
-            il := cast(*IntegerLiteral) node;
-            return to_string(il);
+            return to_string(cast(*IntegerLiteral) node);
         case PrefixExpression;
-            pe := cast(*PrefixExpression) node;
-            return to_string(pe);
+            return to_string(cast(*PrefixExpression) node);
         case InfixExpression;
-            ie := cast(*InfixExpression) node;
-            return to_string(ie);
+            return to_string(cast(*InfixExpression) node);
         case;
             return tprint("Error? to_string(*Node) not found: %", node.type);
     }
@@ -129,7 +121,7 @@ Boolean :: struct {
     #as using expression: Expression;
     value: bool;
 }
-NewBoolean :: (token: Token, value: bool) -> Boolean {
+NewBoolean :: (token: Token, value: bool) -> *Boolean {
     ret := NewNode(Boolean, token);
     ret.value = value;
     return ret;
@@ -142,7 +134,7 @@ IntegerLiteral :: struct {
     #as using expression: Expression;
     value: s64;
 }
-NewIntegerLiteral :: (token: Token, value: s64) -> IntegerLiteral {
+NewIntegerLiteral :: (token: Token, value: s64) -> *IntegerLiteral {
     ret := NewNode(IntegerLiteral, token);
     ret.value = value;
     return ret;
@@ -153,7 +145,7 @@ PrefixExpression :: struct {
     op: string;
     right: Expression;
 }
-NewPrefixExpression :: (token: Token, op: string, right: Expression) -> PrefixExpression {
+NewPrefixExpression :: (token: Token, op: string, right: Expression) -> *PrefixExpression {
     ret := NewNode(PrefixExpression, token);
     ret.op, ret.right = op, right;
     return ret;
@@ -168,7 +160,7 @@ InfixExpression :: struct {
     op: string;
     right: Expression;
 }
-NewInfixExpression :: (token: Token, left: Expression, op: string, right: Expression) -> InfixExpression {
+NewInfixExpression :: (token: Token, left: Expression, op: string, right: Expression) -> *InfixExpression {
     ret := NewNode(InfixExpression, token);
     ret.left, ret.op, ret.right = left, op, right;
     return ret;

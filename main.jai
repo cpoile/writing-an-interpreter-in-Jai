@@ -15,7 +15,7 @@ main :: () {
         Test_let_statement();
         Test_return_statement();
         Test_ast_string();
-        Test_identifier_expressions();
+        Test_expressions();
         print("Tests passed!");
         return;
     }

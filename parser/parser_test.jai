@@ -90,7 +90,12 @@ END
     }
 }
 
-Test_identifier_expressions :: () {
+Test_expressions :: () {
+    test_identifier_expressions();
+    test_integeger_literal_expressions();
+}
+
+test_identifier_expressions :: () {
     input := "foobar;";
 
     l := NewLexer(input);
@@ -109,5 +114,27 @@ Test_identifier_expressions :: () {
         ident := cast(*Identifier) es.expression;
         assert_equal("foobar", ident.value);
         assert_equal("foobar", token_literal(ident));
+    }
+}
+
+test_integeger_literal_expressions :: () {
+    input := "5;";
+
+    l := NewLexer(input);
+    p := NewParser(l);
+
+    program := parse_program(p);
+    check_parse_errors(p);
+    assert_not_null(program);
+
+    assert_equal(1, program.statements.count);
+
+    for program.statements {
+        assert_equal(ExpressionStatement, it.type);
+        es := cast(*ExpressionStatement) it;
+        assert_equal(IntegerLiteral, es.expression.type);
+        lit := cast(*IntegerLiteral) es.expression;
+        assert_equal(5, lit.value);
+        assert_equal("5", token_literal(lit));
     }
 }

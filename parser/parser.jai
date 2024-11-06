@@ -33,6 +33,7 @@ NewParser :: (l: *Lexer) -> *Parser {
     p.lexer = l;
 
     register_prefix(.IDENT, parse_identifier);
+    register_prefix(.INT, parse_integer);
 
     // Read two tokens, so curToken and peekToken are both set
     next_token(p);
@@ -122,6 +123,16 @@ parse_expression :: (p: *Parser, precendence: int) -> *Expression {
 
 parse_identifier :: (p: *Parser) -> *Expression {
     return NewIdentifier(p.cur_token, p.cur_token.literal);
+}
+
+parse_integer :: (p: *Parser) -> *Expression {
+    res, ok, _ := to_integer(p.cur_token.literal);
+    if !ok {
+        msg := sprint("could not parse % as integer", p.cur_token.literal);
+        array_add(*p.errors, msg);
+        return null;
+    }
+    return NewIntegerLiteral(p.cur_token, res);
 }
 
 cur_token_is :: (p: *Parser, t: TokenType) -> bool {
