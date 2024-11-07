@@ -1,9 +1,9 @@
 Precedence :: enum {
     LOWEST;
-    EQUALS;       // ==
+    EQNOTEQ;      // == or !=
     LESSGREATER;  // < or >
-    SUM;          // +
-    PRODUCT;      // *
+    SUMDIFF;      // + or -
+    PRODUCTDIV;   // * or /
     PREFIX;       // -X or !X
     CALL;         // myFunction(X)
 }
@@ -36,6 +36,14 @@ NewParser :: (l: *Lexer) -> *Parser {
     register_prefix(.INT, parse_integer);
     register_prefix(.BANG, parse_prefix_expression);
     register_prefix(.MINUS, parse_prefix_expression);
+    register_infix(.PLUS, parse_infix_expression);
+    register_infix(.MINUS, parse_infix_expression);
+    register_infix(.ASTERISK, parse_infix_expression);
+    register_infix(.SLASH, parse_infix_expression);
+    register_infix(.LT, parse_infix_expression);
+    register_infix(.GT, parse_infix_expression);
+    register_infix(.EQ, parse_infix_expression);
+    register_infix(.NOT_EQ, parse_infix_expression);
 
     // Read two tokens, so curToken and peekToken are both set
     next_token(p);
@@ -124,7 +132,13 @@ parse_expression :: (p: *Parser, precendence: int) -> *Expression {
     }
     left_exp := prefix(p);
 
-    return left_exp;
+    infix := infix_parse_fns[p.peek_token.type];
+    if !infix {
+        return left_exp;
+    }
+    next_token(p);
+
+    return infix(p, left_exp);
 }
 
 parse_identifier :: (p: *Parser) -> *Expression {
@@ -151,6 +165,23 @@ parse_prefix_expression :: (p: *Parser) -> *Expression {
     return NewPrefixExpression(prefix_token, prefix_token.literal, right);
 }
 
+parse_infix_expression :: (p: *Parser, left: *Expression) -> *Expression {
+    infix_token := p.cur_token;
+
+    next_token(p);
+
+    precedence := precedence_for_token(infix_token.type);
+    if precedence < 0 {
+        msg := sprint("bad precedence operator: %", infix_token.type);
+        array_add(*p.errors, msg);
+        return null;
+    }
+
+    right := parse_expression(p, precedence);
+
+    return NewInfixExpression(infix_token, left, infix_token.literal, right);
+}
+
 // Parsing utilities:
 cur_token_is :: (p: *Parser, t: TokenType) -> bool {
     return p.cur_token.type == t;
@@ -172,4 +203,23 @@ expect_peek :: (p: *Parser, t: TokenType) -> bool {
 peek_error :: (p: *Parser, t: TokenType) {
     msg := sprint("expected next token to be %, got % instead", t, p.peek_token.type);
     array_add(*p.errors, msg);
+}
+
+precedence_for_token :: (t: TokenType) -> int {
+    if t == {
+        case .EQ; #through;
+        case .NOT_EQ;
+            return cast(int) Precedence.EQNOTEQ;
+        case .LT;  #through;
+        case .GT;
+            return cast(int) Precedence.LESSGREATER;
+        case .PLUS; #through;
+        case .MINUS;
+            return cast(int) Precedence.SUMDIFF;
+        case .ASTERISK; #through;
+        case .SLASH;
+            return cast(int) Precedence.PRODUCTDIV;
+        case;
+            return -1;
+    }
 }

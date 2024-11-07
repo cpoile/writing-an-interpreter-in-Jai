@@ -94,6 +94,7 @@ Test_expressions :: () {
     test_identifier_expressions();
     test_integer_literal_expressions();
     test_prefix_expressions();
+    test_infix_expressions();
 }
 
 test_identifier_expressions :: () {
@@ -170,5 +171,42 @@ test_prefix_expressions :: () {
         exp := cast(*PrefixExpression) es.expression;
         assert_equal(it.op, exp.op);
         test_integer_literal(it.int_val, exp.right);
+    }
+}
+
+test_infix_expressions :: () {
+    cases := struct{
+        input:   string;
+        left:    s64;
+        op:      string;
+        right:   s64;
+    }.[
+        .{"5 + 5;", 5, "+", 5},
+        .{"5 - 5;", 5, "-", 5},
+        .{"5 * 5;", 5, "*", 5},
+        .{"5 / 5;", 5, "/", 5},
+        .{"5 > 5;", 5, ">", 5},
+        .{"5 < 5;", 5, "<", 5},
+        .{"5 == 5;", 5, "==", 5},
+        .{"5 != 5;", 5, "!=", 5},
+    ];
+
+    for cases {
+        l := NewLexer(it.input);
+        p := NewParser(l);
+
+        program := parse_program(p);
+        check_parse_errors(p);
+        assert_not_null(program);
+        assert_equal(1, program.statements.count);
+
+        stmt := program.statements[0];
+        assert_equal(ExpressionStatement, stmt.type);
+        es := cast(*ExpressionStatement) stmt;
+        assert_equal(InfixExpression, es.expression.type);
+        exp := cast(*InfixExpression) es.expression;
+        assert_equal(it.op, exp.op);
+        test_integer_literal(it.left, exp.left);
+        test_integer_literal(it.right, exp.right);
     }
 }
