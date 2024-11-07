@@ -34,6 +34,8 @@ NewParser :: (l: *Lexer) -> *Parser {
 
     register_prefix(.IDENT, parse_identifier);
     register_prefix(.INT, parse_integer);
+    register_prefix(.BANG, parse_prefix_expression);
+    register_prefix(.MINUS, parse_prefix_expression);
 
     // Read two tokens, so curToken and peekToken are both set
     next_token(p);
@@ -115,7 +117,11 @@ parse_expression_statement :: (p: *Parser) -> *ExpressionStatement {
 
 parse_expression :: (p: *Parser, precendence: int) -> *Expression {
     prefix := prefix_parse_fns[p.cur_token.type];
-    if !prefix  return null;
+    if !prefix {
+        msg := sprint("no prefix parse function for % found", p.cur_token.type);
+        array_add(*p.errors, msg);
+        return null;
+    }
     left_exp := prefix(p);
 
     return left_exp;
@@ -135,6 +141,17 @@ parse_integer :: (p: *Parser) -> *Expression {
     return NewIntegerLiteral(p.cur_token, res);
 }
 
+parse_prefix_expression :: (p: *Parser) -> *Expression {
+    prefix_token := p.cur_token;
+
+    next_token(p);
+
+    right := parse_expression(p, cast(int) Precedence.PREFIX);
+
+    return NewPrefixExpression(prefix_token, prefix_token.literal, right);
+}
+
+// Parsing utilities:
 cur_token_is :: (p: *Parser, t: TokenType) -> bool {
     return p.cur_token.type == t;
 }

@@ -51,17 +51,17 @@ to_string :: (node: *Node) -> string {
 }
 
 Statement :: struct {
-    #as using base: Node;
+    using #as base: Node;
 }
 
 Expression :: struct {
-    #as using base: Node;
+    using #as base: Node;
 }
 
 ////////////////////////////
 // Statements
 LetStatement :: struct {
-    #as using statement: Statement;
+    using #as statement: Statement;
     name:  *Identifier;
     value: *Expression;
 }
@@ -76,7 +76,7 @@ to_string :: (s: *LetStatement) -> string {
 }
 
 ReturnStatement :: struct {
-    #as using statement: Statement;
+    using #as statement: Statement;
     return_value: *Expression;
 }
 NewReturnStatement :: (token: Token, return_value: *Expression) -> *ReturnStatement {
@@ -90,7 +90,7 @@ to_string :: (s: *ReturnStatement) -> string {
 }
 
 ExpressionStatement :: struct {
-    #as using statement: Statement;
+    using #as statement: Statement;
     expression: *Expression;
 }
 NewExpressionStatement :: (token: Token, expression: *Expression) -> *ExpressionStatement {
@@ -105,7 +105,7 @@ to_string :: (s: *ExpressionStatement) -> string {
 ///////////////////////////
 // Expressions
 Identifier :: struct {
-    #as using expression: Expression;
+    using #as expression: Expression;
     value: string;
 }
 NewIdentifier :: (token: Token, value: string) -> *Identifier {
@@ -118,7 +118,7 @@ to_string :: (i: *Identifier) -> string {
 }
 
 Boolean :: struct {
-    #as using expression: Expression;
+    using #as expression: Expression;
     value: bool;
 }
 NewBoolean :: (token: Token, value: bool) -> *Boolean {
@@ -131,7 +131,7 @@ to_string :: (i: $T) -> string {
 }
 
 IntegerLiteral :: struct {
-    #as using expression: Expression;
+    using #as expression: Expression;
     value: s64;
 }
 NewIntegerLiteral :: (token: Token, value: s64) -> *IntegerLiteral {
@@ -141,11 +141,11 @@ NewIntegerLiteral :: (token: Token, value: s64) -> *IntegerLiteral {
 }
 
 PrefixExpression :: struct {
-    #as using expression: Expression;  // The prefix token, e.g. !
+    using #as expression: Expression;  // The prefix token, e.g. !
     op: string;
-    right: Expression;
+    right: *Expression;
 }
-NewPrefixExpression :: (token: Token, op: string, right: Expression) -> *PrefixExpression {
+NewPrefixExpression :: (token: Token, op: string, right: *Expression) -> *PrefixExpression {
     ret := NewNode(PrefixExpression, token);
     ret.op, ret.right = op, right;
     return ret;
@@ -155,12 +155,12 @@ to_string :: (p: *PrefixExpression) -> string {
 }
 
 InfixExpression :: struct {
-    #as using expression: Expression;
-    left: Expression;
+    using #as expression: Expression;
+    left: *Expression;
     op: string;
-    right: Expression;
+    right: *Expression;
 }
-NewInfixExpression :: (token: Token, left: Expression, op: string, right: Expression) -> *InfixExpression {
+NewInfixExpression :: (token: Token, left: *Expression, op: string, right: *Expression) -> *InfixExpression {
     ret := NewNode(InfixExpression, token);
     ret.left, ret.op, ret.right = left, op, right;
     return ret;
