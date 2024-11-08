@@ -126,7 +126,7 @@ NewBoolean :: (token: Token, value: bool) -> *Boolean {
     ret.value = value;
     return ret;
 }
-to_string :: (i: $T) -> string {
+to_string :: (i: Boolean) -> string {
     return i.token.literal;
 }
 
@@ -138,6 +138,9 @@ NewIntegerLiteral :: (token: Token, value: s64) -> *IntegerLiteral {
     ret := NewNode(IntegerLiteral, token);
     ret.value = value;
     return ret;
+}
+to_string :: (i: *IntegerLiteral) -> string {
+    return i.token.literal;
 }
 
 PrefixExpression :: struct {
@@ -151,7 +154,7 @@ NewPrefixExpression :: (token: Token, op: string, right: *Expression) -> *Prefix
     return ret;
 }
 to_string :: (p: *PrefixExpression) -> string {
-    return tprint("(%0%0);", p.op, to_string(p.right));
+    return tprint("(%0%0)", p.op, to_string(p.right));
 }
 
 InfixExpression :: struct {

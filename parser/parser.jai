@@ -123,7 +123,7 @@ parse_expression_statement :: (p: *Parser) -> *ExpressionStatement {
     return stmt;
 }
 
-parse_expression :: (p: *Parser, precendence: int) -> *Expression {
+parse_expression :: (p: *Parser, precedence: int) -> *Expression {
     prefix := prefix_parse_fns[p.cur_token.type];
     if !prefix {
         msg := sprint("no prefix parse function for % found", p.cur_token.type);
@@ -132,13 +132,16 @@ parse_expression :: (p: *Parser, precendence: int) -> *Expression {
     }
     left_exp := prefix(p);
 
-    infix := infix_parse_fns[p.peek_token.type];
-    if !infix {
-        return left_exp;
+    while !peek_token_is(p, .SEMICOLON) && precedence < peek_precedence(p) {
+        infix := infix_parse_fns[p.peek_token.type];
+        if !infix {
+            return left_exp;
+        }
+        next_token(p);
+        left_exp = infix(p, left_exp);
     }
-    next_token(p);
 
-    return infix(p, left_exp);
+    return left_exp;
 }
 
 parse_identifier :: (p: *Parser) -> *Expression {
@@ -156,30 +159,18 @@ parse_integer :: (p: *Parser) -> *Expression {
 }
 
 parse_prefix_expression :: (p: *Parser) -> *Expression {
-    prefix_token := p.cur_token;
-
+    expr := NewPrefixExpression(p.cur_token, p.cur_token.literal, null);
     next_token(p);
-
-    right := parse_expression(p, cast(int) Precedence.PREFIX);
-
-    return NewPrefixExpression(prefix_token, prefix_token.literal, right);
+    expr.right = parse_expression(p, cast(int) Precedence.PREFIX);
+    return expr;
 }
 
 parse_infix_expression :: (p: *Parser, left: *Expression) -> *Expression {
-    infix_token := p.cur_token;
-
+    expr := NewInfixExpression(p.cur_token, left, p.cur_token.literal, null);
+    precedence := cur_precedence(p);
     next_token(p);
-
-    precedence := precedence_for_token(infix_token.type);
-    if precedence < 0 {
-        msg := sprint("bad precedence operator: %", infix_token.type);
-        array_add(*p.errors, msg);
-        return null;
-    }
-
-    right := parse_expression(p, precedence);
-
-    return NewInfixExpression(infix_token, left, infix_token.literal, right);
+    expr.right = parse_expression(p, precedence);
+    return expr;
 }
 
 // Parsing utilities:
@@ -203,6 +194,14 @@ expect_peek :: (p: *Parser, t: TokenType) -> bool {
 peek_error :: (p: *Parser, t: TokenType) {
     msg := sprint("expected next token to be %, got % instead", t, p.peek_token.type);
     array_add(*p.errors, msg);
+}
+
+cur_precedence :: (p: *Parser) -> int {
+    return precedence_for_token(p.cur_token.type);
+}
+
+peek_precedence :: (p: *Parser) -> int {
+    return precedence_for_token(p.peek_token.type);
 }
 
 precedence_for_token :: (t: TokenType) -> int {

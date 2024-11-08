@@ -95,6 +95,7 @@ Test_expressions :: () {
     test_integer_literal_expressions();
     test_prefix_expressions();
     test_infix_expressions();
+    test_op_precedence_parsing();
 }
 
 test_identifier_expressions :: () {
@@ -208,5 +209,37 @@ test_infix_expressions :: () {
         assert_equal(it.op, exp.op);
         test_integer_literal(it.left, exp.left);
         test_integer_literal(it.right, exp.right);
+    }
+}
+
+test_op_precedence_parsing :: () {
+    cases := struct{
+        input:    string;
+        expected: string;
+    }.[
+        .{"-a * b", "((-a) * b)"},
+        .{"!-a", "(!(-a))"},
+        .{"a + b + c", "((a + b) + c)"},
+        .{"a + b - c", "((a + b) - c)"},
+        .{"a * b * c", "((a * b) * c)"},
+        .{"a * b / c", "((a * b) / c)"},
+        .{"a + b / c", "(a + (b / c))"},
+        .{"a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"},
+        .{"3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"},
+        .{"5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"},
+        .{"5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"},
+        .{"3 + 4 * 5 == 3 * 1 + 4 * 5", "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+    ];
+
+    for cases {
+        l := NewLexer(it.input);
+        p := NewParser(l);
+
+        program := parse_program(p);
+        check_parse_errors(p);
+        assert_not_null(program);
+
+        actual := to_string(program);
+        assert_equal(it.expected, actual);
     }
 }
