@@ -21,9 +21,9 @@ if (5 < 10) {
 }
 
 10 == 10;
-10 != 9;
-END
-
+10 != 9;
+END
+
     expectedTokens := Token.[
         .{LET, "let"},     .{IDENT, "five"},  .{ASSIGN, "="},    .{INT, "5"},         .{SEMICOLON, ";"}, .{LET, "let"},
         .{IDENT, "ten"},   .{ASSIGN, "="},    .{INT, "10"},      .{SEMICOLON, ";"},   .{LET, "let"},     .{IDENT, "add"},
