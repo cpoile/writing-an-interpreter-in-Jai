@@ -1,4 +1,4 @@
-#load "../token/token.jai";
+#load "token.jai";
 #load "print_char.jai";
 
 Lexer :: struct {

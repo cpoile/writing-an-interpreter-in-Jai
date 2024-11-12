@@ -1,12 +1,12 @@
 #import "Basic";
 #import "String";
-#load "lexer/lexer.jai";
-#load "lexer/lexer_test.jai";
-#load "repl/repl.jai";
-#load "ast/ast.jai";
-#load "ast/ast_test.jai";
-#load "parser/parser.jai";
-#load "parser/parser_test.jai";
+#load "lexer.jai";
+#load "lexer_test.jai";
+#load "repl.jai";
+#load "ast.jai";
+#load "ast_test.jai";
+#load "parser.jai";
+#load "parser_test.jai";
 
 main :: () {
     args := get_command_line_arguments();
