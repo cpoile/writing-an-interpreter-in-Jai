@@ -163,7 +163,7 @@ InfixExpression :: struct {
     op: string;
     right: *Expression;
 }
-NewInfixExpression :: (token: Token, left: *Expression, op: string, right: *Expression) -> *InfixExpression {
+NewInfixExpression :: (token: Token, op: string, left: *Expression, right: *Expression) -> *InfixExpression {
     ret := NewNode(InfixExpression, token);
     ret.left, ret.op, ret.right = left, op, right;
     return ret;

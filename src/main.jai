@@ -1,5 +1,6 @@
 #import "Basic";
 #import "String";
+#import "System";
 #load "lexer.jai";
 #load "lexer_test.jai";
 #load "repl.jai";
@@ -20,15 +21,13 @@ main :: () {
         return;
     }
 
-    user_name: [128]u8;
-    count : u32 = 128;
-    success := GetUserNameA(user_name.data, *count);
+    name, success := get_username();
     if !success {
         print("Error getting username.\n");
         return;
     }
 
-    print("Hello %! This is the Monkey programming language!\nFeel free to type in commands.\n", to_string(user_name.data, count-1));
+    print("Hello %! This is the Monkey programming language!\nFeel free to type in commands.\n", name);
     stdin_handle := GetStdHandle(STD_INPUT_HANDLE);
 
     start_repl(stdin_handle);

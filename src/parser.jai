@@ -126,7 +126,7 @@ parse_expression_statement :: (p: *Parser) -> *ExpressionStatement {
 parse_expression :: (p: *Parser, precedence: int) -> *Expression {
     prefix := prefix_parse_fns[p.cur_token.type];
     if !prefix {
-        msg := sprint("no prefix parse function for % found", p.cur_token.type);
+        msg := tprint("no prefix parse function for % found", p.cur_token.type);
         array_add(*p.errors, msg);
         return null;
     }
@@ -151,7 +151,7 @@ parse_identifier :: (p: *Parser) -> *Expression {
 parse_integer :: (p: *Parser) -> *Expression {
     res, ok, _ := to_integer(p.cur_token.literal);
     if !ok {
-        msg := sprint("could not parse % as integer", p.cur_token.literal);
+        msg := tprint("could not parse % as integer", p.cur_token.literal);
         array_add(*p.errors, msg);
         return null;
     }
@@ -166,7 +166,7 @@ parse_prefix_expression :: (p: *Parser) -> *Expression {
 }
 
 parse_infix_expression :: (p: *Parser, left: *Expression) -> *Expression {
-    expr := NewInfixExpression(p.cur_token, left, p.cur_token.literal, null);
+    expr := NewInfixExpression(p.cur_token, p.cur_token.literal, left, null);
     precedence := cur_precedence(p);
     next_token(p);
     expr.right = parse_expression(p, precedence);
@@ -192,7 +192,7 @@ expect_peek :: (p: *Parser, t: TokenType) -> bool {
 }
 
 peek_error :: (p: *Parser, t: TokenType) {
-    msg := sprint("expected next token to be %, got % instead", t, p.peek_token.type);
+    msg := tprint("expected next token to be %, got % instead", t, p.peek_token.type);
     array_add(*p.errors, msg);
 }
 
